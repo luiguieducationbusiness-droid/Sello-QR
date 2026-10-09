@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sello QR · Generador de códigos QR personalizados</title>
+<meta name="description" content="Crea códigos QR para enlaces, teléfonos y redes sociales. Cambia color, forma, tamaño y añade tu logo. Gratis, sin registro y sin enviar datos a ningún servidor.">
+<meta name="theme-color" content="#1B1D24">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231B1D24'/%3E%3Crect x='5' y='5' width='9' height='9' rx='2' fill='%23F2B705'/%3E%3Crect x='18' y='5' width='9' height='9' rx='2' fill='%23FAFAF6'/%3E%3Crect x='5' y='18' width='9' height='9' rx='2' fill='%23FAFAF6'/%3E%3Crect x='19' y='19' width='3' height='3' fill='%23E8397F'/%3E%3Crect x='24' y='24' width='3' height='3' fill='%2312B7D6'/%3E%3C/svg%3E">
+<style>
+:root{
+  --ink:#1B1D24;
+  --panel:#242732;
+  --field:#1B1D24;
+  --line:#3B3F50;
+  --text:#ECEDF2;
+  --muted:#A2A8BC;
+  --paper:#FAFAF6;
+  --cyan:#12B7D6;
+  --magenta:#E8397F;
+  --yellow:#F2B705;
+  --danger:#FF8A8A;
+  --radius:10px;
+  --serif:Georgia,"Times New Roman",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ink);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.5}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.top{display:flex;align-items:center;gap:.7rem;padding:1rem clamp(1rem,4vw,2.5rem);border-bottom:1px solid var(--line)}
+.top svg{flex:none}
+.brand{font-family:var(--serif);font-weight:700;font-size:1.25rem;letter-spacing:.01em}
+.top small{color:var(--muted);margin-left:auto;font-size:.875rem}
+
+.app{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(1.5rem,4vw,3.5rem);max-width:1180px;margin:0 auto;padding:clamp(1.25rem,4vw,3rem) clamp(1rem,4vw,2.5rem) 3rem}
+h1{font-family:var(--serif);font-size:clamp(2rem,4.6vw,3.1rem);line-height:1.08;margin:0 0 .6rem;letter-spacing:-.01em}
+.lead{color:var(--muted);margin:0 0 1.75rem;max-width:46ch}
+
+/* Pestañas de contenido */
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:1rem}
+.tab{border:0;background:transparent;padding:.6rem .4rem;border-radius:7px;cursor:pointer;color:var(--muted);font-weight:600;font-size:.95rem}
+.tab:hover{color:var(--text)}
+.tab[aria-selected="true"]{background:var(--paper);color:var(--ink)}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:1.1rem 1.1rem 1.2rem;margin-bottom:1rem}
+.card > legend, .card > h2{font-family:var(--serif);font-size:1.1rem;font-weight:700;margin:0 0 .9rem;padding:0}
+fieldset.card{min-width:0}
+label,.lbl{display:block;font-size:.9rem;font-weight:600;margin-bottom:.35rem}
+.hint{color:var(--muted);font-size:.85rem;margin:.4rem 0 0}
+.field{margin-bottom:.9rem}
+.field:last-child{margin-bottom:0}
+input[type=text],input[type=url],input[type=tel],select,textarea{width:100%;background:var(--field);border:1px solid var(--line);border-radius:8px;padding:.65rem .75rem;min-height:44px}
+textarea{resize:vertical;min-height:96px}
+input::placeholder,textarea::placeholder{color:#6F7590}
+input:hover,select:hover,textarea:hover{border-color:#57607A}
+select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 14px) 50%;background-size:6px 6px;background-repeat:no-repeat;padding-right:2.2rem}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+.prefix{display:flex;align-items:stretch}
+.prefix span{display:flex;align-items:center;padding:0 .7rem;background:#2E3240;border:1px solid var(--line);border-right:0;border-radius:8px 0 0 8px;color:var(--muted);font-size:.9rem;white-space:nowrap;max-width:48%;overflow:hidden;text-overflow:ellipsis}
+.prefix input{border-radius:0 8px 8px 0}
+[hidden]{display:none!important}
+
+/* Colores */
+.presets{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem}
+.preset{width:44px;height:44px;border-radius:50%;border:2px solid var(--line);padding:0;cursor:pointer;overflow:hidden;position:relative;background:none}
+.preset i{position:absolute;inset:0;display:block}
+.preset[aria-pressed="true"]{border-color:var(--yellow)}
+.colors{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+.colorbox{display:flex;align-items:center;gap:.6rem;background:var(--field);border:1px solid var(--line);border-radius:8px;padding:.35rem .6rem .35rem .35rem;min-height:44px}
+.colorbox input{width:36px;height:34px;padding:0;border:0;background:none;cursor:pointer;border-radius:5px}
+.colorbox code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem;color:var(--muted)}
+
+/* Formas */
+.shapes{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}
+.shape input{position:absolute;opacity:0;width:1px;height:1px}
+.shape span{display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.7rem .3rem;border:1px solid var(--line);border-radius:8px;background:var(--field);cursor:pointer;font-size:.9rem;font-weight:600;margin:0}
+.shape{position:relative}
+.shape input:checked + span{border-color:var(--yellow);box-shadow:inset 0 0 0 1px var(--yellow)}
+.shape input:focus-visible + span{outline:2px solid var(--cyan);outline-offset:2px}
+.shape svg{display:block}
+
+/* Logo */
+.file-row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-height:44px;padding:.55rem 1rem;border-radius:8px;border:1px solid var(--line);background:transparent;cursor:pointer;font-weight:600;text-decoration:none}
+.btn:hover{border-color:#6F7590}
+.btn-primary{background:var(--yellow);border-color:var(--yellow);color:var(--ink)}
+.btn-primary:hover{background:#FFC61F;border-color:#FFC61F}
+.btn-paper{background:var(--paper);border-color:var(--paper);color:var(--ink)}
+.btn-paper:hover{background:#fff}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.logo-thumb{width:44px;height:44px;border-radius:8px;border:1px solid var(--line);background:#fff center/contain no-repeat}
+input[type=range]{width:100%;accent-color:var(--yellow);min-height:32px}
+.check{display:flex;align-items:center;gap:.6rem;font-weight:500;margin:0;cursor:pointer}
+.check input{width:20px;height:20px;accent-color:var(--yellow);flex:none}
+.range-head{display:flex;justify-content:space-between}
+.range-head output{color:var(--muted);font-size:.9rem}
+
+/* Escenario: mesa de impresión */
+.stage{position:relative}
+.sticky{position:sticky;top:1.25rem}
+.bed{position:relative;background:var(--paper);color:var(--ink);border-radius:6px;padding:clamp(1.6rem,5vw,2.6rem);box-shadow:0 18px 40px rgba(0,0,0,.35)}
+.mark{position:absolute;width:18px;height:18px;border:2px solid var(--cyan)}
+.mark.tl{top:10px;left:10px;border-right:0;border-bottom:0}
+.mark.tr{top:10px;right:10px;border-left:0;border-bottom:0;border-color:var(--magenta)}
+.mark.bl{bottom:10px;left:10px;border-right:0;border-top:0;border-color:var(--magenta)}
+.mark.br{bottom:10px;right:10px;border-left:0;border-top:0}
+.canvas-wrap{position:relative;display:flex;justify-content:center;min-height:200px}
+#qr{display:block;width:100%;height:auto;max-width:420px;image-rendering:auto;transition:opacity .2s}
+#qr.is-sample{opacity:.22;filter:grayscale(1)}
+.sample-note{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:1rem;font-family:var(--serif);font-size:1.15rem;font-weight:700;color:var(--ink);pointer-events:none}
+.status{min-height:1.4em;margin:1rem 0 0;font-size:.9rem;color:#4B5163}
+.status.warn{color:#9A4A00}
+.status.err{color:#B3261E;font-weight:600}
+.meta{margin:.25rem 0 0;font-size:.85rem;color:#5D6478}
+.downloads{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-top:1rem}
+.foot{max-width:1180px;margin:0 auto;padding:0 clamp(1rem,4vw,2.5rem) 2.5rem;color:var(--muted);font-size:.85rem}
+
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .stage{order:-1}
+  .sticky{position:static}
+  .top small{display:none}
+}
+@media (max-width:520px){
+  .tabs{grid-template-columns:repeat(2,1fr)}
+  .row,.colors{grid-template-columns:1fr}
+  .downloads{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#FAFAF6"/><rect x="5" y="5" width="9" height="9" rx="2" fill="#1B1D24"/><rect x="18" y="5" width="9" height="9" rx="2" fill="#1B1D24"/><rect x="5" y="18" width="9" height="9" rx="2" fill="#1B1D24"/><rect x="19" y="19" width="3" height="3" fill="#E8397F"/><rect x="24" y="24" width="3" height="3" fill="#12B7D6"/><rect x="24" y="19" width="3" height="3" fill="#F2B705"/></svg>
+  <span class="brand">Sello QR</span>
+  <small>Funciona sin conexión y sin enviar tus datos</small>
+</header>
+
+<main class="app">
+  <section class="controls" aria-labelledby="titulo">
+    <h1 id="titulo">Tu enlace, tu color, tu marca.</h1>
+    <p class="lead">Genera un código QR para tu sitio, tu número o tu red social, y déjalo con la identidad de tu marca antes de descargarlo.</p>
+
+    <div class="tabs" role="tablist" aria-label="Tipo de contenido">
+      <button class="tab" role="tab" id="tab-url" aria-controls="p-url" aria-selected="true" data-type="url">Enlace</button>
+      <button class="tab" role="tab" id="tab-phone" aria-controls="p-phone" aria-selected="false" data-type="phone" tabindex="-1">Teléfono</button>
+      <button class="tab" role="tab" id="tab-social" aria-controls="p-social" aria-selected="false" data-type="social" tabindex="-1">Red social</button>
+      <button class="tab" role="tab" id="tab-text" aria-controls="p-text" aria-selected="false" data-type="text" tabindex="-1">Texto</button>
+    </div>
+
+    <div class="card">
+      <div id="p-url" role="tabpanel" aria-labelledby="tab-url">
+        <div class="field">
+          <label for="in-url">Dirección web</label>
+          <input id="in-url" type="url" inputmode="url" autocomplete="off" placeholder="https://tusitio.com">
+          <p class="hint">Si no escribes https://, lo añadimos por ti.</p>
+        </div>
+      </div>
+
+      <div id="p-phone" role="tabpanel" aria-labelledby="tab-phone" hidden>
+        <div class="row field">
+          <div>
+            <label for="in-phone-action">Al escanear</label>
+            <select id="in-phone-action">
+              <option value="tel">Llamar al número</option>
+              <option value="wa">Abrir chat de WhatsApp</option>
+            </select>
+          </div>
+          <div>
+            <label for="in-phone">Número con código de país</label>
+            <input id="in-phone" type="tel" inputmode="tel" autocomplete="off" placeholder="+51 987 654 321">
+          </div>
+        </div>
+        <div class="field" id="wa-msg-wrap" hidden>
+          <label for="in-wa-msg">Mensaje inicial (opcional)</label>
+          <input id="in-wa-msg" type="text" maxlength="200" placeholder="Hola, quisiera más información">
+        </div>
+      </div>
+
+      <div id="p-social" role="tabpanel" aria-labelledby="tab-social" hidden>
+        <div class="field">
+          <label for="in-platform">Red social</label>
+          <select id="in-platform">
+            <option value="instagram">Instagram</option>
+            <option value="facebook">Facebook</option>
+            <option value="tiktok">TikTok</option>
+            <option value="x">X (Twitter)</option>
+            <option value="youtube">YouTube</option>
+            <option value="linkedin">LinkedIn</option>
+            <option value="telegram">Telegram</option>
+            <option value="snapchat">Snapchat</option>
+            <option value="twitch">Twitch</option>
+            <option value="github">GitHub</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="in-handle">Usuario</label>
+          <div class="prefix"><span id="handle-prefix">instagram.com/</span><input id="in-handle" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="tu.usuario"></div>
+          <p class="hint">También puedes pegar el enlace completo de tu perfil.</p>
+        </div>
+      </div>
+
+      <div id="p-text" role="tabpanel" aria-labelledby="tab-text" hidden>
+        <div class="field">
+          <label for="in-text">Texto libre</label>
+          <textarea id="in-text" placeholder="Un mensaje, una dirección, un correo (mailto:tu@correo.com)…"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <fieldset class="card">
+      <legend>Color</legend>
+      <div class="presets" id="presets" role="group" aria-label="Combinaciones sugeridas"></div>
+      <div class="colors">
+        <div>
+          <span class="lbl" id="l-fg">Código</span>
+          <div class="colorbox"><input id="in-fg" type="color" value="#1B1D24" aria-labelledby="l-fg"><code id="c-fg">#1B1D24</code></div>
+        </div>
+        <div>
+          <span class="lbl" id="l-bg">Fondo</span>
+          <div class="colorbox"><input id="in-bg" type="color" value="#FFFFFF" aria-labelledby="l-bg"><code id="c-bg">#FFFFFF</code></div>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="card">
+      <legend>Forma y tamaño</legend>
+      <div class="field">
+        <div class="shapes" role="radiogroup" aria-label="Forma de los módulos">
+          <label class="shape"><input type="radio" name="shape" value="square" checked><span>
+            <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><g fill="currentColor"><rect x="4" y="4" width="10" height="10"/><rect x="17" y="4" width="10" height="10"/><rect x="30" y="4" width="10" height="10"/><rect x="4" y="17" width="10" height="10"/><rect x="30" y="17" width="10" height="10"/><rect x="17" y="30" width="10" height="10"/><rect x="30" y="30" width="10" height="10"/></g></svg>Cuadrada</span></label>
+          <label class="shape"><input type="radio" name="shape" value="rounded"><span>
+            <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><g fill="currentColor"><rect x="4" y="4" width="10" height="10" rx="3"/><rect x="17" y="4" width="10" height="10" rx="3"/><rect x="30" y="4" width="10" height="10" rx="3"/><rect x="4" y="17" width="10" height="10" rx="3"/><rect x="30" y="17" width="10" height="10" rx="3"/><rect x="17" y="30" width="10" height="10" rx="3"/><rect x="30" y="30" width="10" height="10" rx="3"/></g></svg>Redondeada</span></label>
+          <label class="shape"><input type="radio" name="shape" value="dots"><span>
+            <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><g fill="currentColor"><circle cx="9" cy="9" r="5.5"/><circle cx="22" cy="9" r="5.5"/><circle cx="35" cy="9" r="5.5"/><circle cx="9" cy="22" r="5.5"/><circle cx="35" cy="22" r="5.5"/><circle cx="22" cy="35" r="5.5"/><circle cx="35" cy="35" r="5.5"/></g></svg>Puntos</span></label>
+        </div>
+      </div>
+      <div class="field">
+        <label for="in-size">Tamaño de descarga</label>
+        <select id="in-size">
+          <option value="600">Pequeño · 600 px</option>
+          <option value="1000" selected>Mediano · 1000 px</option>
+          <option value="1600">Grande · 1600 px</option>
+          <option value="2400">Impresión · 2400 px</option>
+        </select>
+        <p class="hint">Si el contenido es largo, el tamaño aumenta solo para que el código siga leyéndose bien.</p>
+      </div>
+    </fieldset>
+
+    <fieldset class="card">
+      <legend>Logo o imagen</legend>
+      <div class="field file-row">
+        <div class="logo-thumb" id="logo-thumb" hidden></div>
+        <input id="in-logo" type="file" accept="image/*" class="sr">
+        <label for="in-logo" class="btn" id="logo-btn" style="margin:0">Subir imagen</label>
+        <button type="button" class="btn" id="logo-remove" hidden>Quitar</button>
+      </div>
+      <div id="logo-opts" hidden>
+        <div class="field">
+          <div class="range-head"><label for="in-logo-size">Tamaño del logo</label><output id="o-logo-size" for="in-logo-size">20 %</output></div>
+          <input id="in-logo-size" type="range" min="10" max="28" value="20">
+        </div>
+        <div class="field">
+          <label class="check"><input id="in-halo" type="checkbox" checked> Fondo detrás del logo</label>
+          <p class="hint">Con logo activamos la máxima corrección de errores para que el código se siga leyendo.</p>
+        </div>
+      </div>
+      <p class="hint" id="logo-hint" style="margin-top:0">PNG, JPG, SVG o WebP. Se queda en tu navegador.</p>
+    </fieldset>
+
+    <fieldset class="card">
+      <legend>Marco</legend>
+      <div class="field">
+        <label class="check"><input id="in-frame" type="checkbox"> Añadir etiqueta debajo del código</label>
+      </div>
+      <div class="field" id="frame-wrap" hidden>
+        <label for="in-frame-text">Texto de la etiqueta</label>
+        <input id="in-frame-text" type="text" maxlength="28" value="Escanéame">
+      </div>
+    </fieldset>
+  </section>
+
+  <aside class="stage" aria-label="Vista previa">
+    <div class="sticky">
+      <div class="bed">
+        <span class="mark tl"></span><span class="mark tr"></span><span class="mark bl"></span><span class="mark br"></span>
+        <div class="canvas-wrap">
+          <canvas id="qr" width="400" height="400" role="img" aria-label="Vista previa del código QR"></canvas>
+          <div class="sample-note" id="sample-note">Escribe algo y aquí verás tu código</div>
+        </div>
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+        <p class="meta" id="meta"></p>
+      </div>
+      <div class="downloads">
+        <button type="button" class="btn btn-primary" id="dl-png" disabled>Descargar PNG</button>
+        <button type="button" class="btn btn-paper" id="dl-svg" disabled>Descargar SVG</button>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<p class="foot">Todo se genera en tu navegador: el contenido de tu código, tu logo y tus colores no se envían a ningún servidor. Prueba siempre el código con tu celular antes de imprimirlo.</p>
+
+<script>
+// Minimal self-contained QR Code encoder (byte mode), implementing ISO/IEC 18004.
+// No external dependencies. Public-domain algorithm, original implementation.
+
+(function (global) {
+  'use strict';
+
+  // ---------- Galois Field GF(256) tables (primitive poly 0x11d) ----------
+  var GF_EXP = new Array(512);
+  var GF_LOG = new Array(256);
+  (function initGF() {
+    var x = 1;
+    for (var i = 0; i < 255; i++) {
+      GF_EXP[i] = x;
+      GF_LOG[x] = i;
+      x <<= 1;
+      if (x & 0x100) x ^= 0x11d;
+    }
+    for (var j = 255; j < 512; j++) GF_EXP[j] = GF_EXP[j - 255];
+  })();
+
+  function gfMul(a, b) {
+    if (a === 0 || b === 0) return 0;
+    return GF_EXP[GF_LOG[a] + GF_LOG[b]];
+  }
+
+  function rsGeneratorPoly(degree) {
+    var poly = [1];
+    for (var i = 0; i < degree; i++) {
+      var next = new Array(poly.length + 1).fill(0);
+      for (var j = 0; j < poly.length; j++) {
+        next[j] ^= gfMul(poly[j], 1);
+        next[j + 1] ^= gfMul(poly[j], GF_EXP[i]);
+      }
+      poly = next;
+    }
+    return poly; // highest degree first is NOT this; poly[0] is x^degree coeff.. we treat consistently below
+  }
+
+  function rsComputeRemainder(dataCodewords, ecLen) {
+    var generator = rsGeneratorPoly(ecLen);
+    var result = dataCodewords.slice();
+    for (var i = 0; i < ecLen; i++) result.push(0);
+    for (var i = 0; i < dataCodewords.length; i++) {
+      var coef = result[i];
+      if (coef === 0) continue;
+      for (var j = 0; j < generator.length; j++) {
+        result[i + j] ^= gfMul(generator[j], coef);
+      }
+    }
+    return result.slice(dataCodewords.length, dataCodewords.length + ecLen);
+  }
+
+  // ---------- Capacity table: data codewords per version (1-40) ----------
+  // Total data+EC codewords per version (independent of EC level)
+  var TOTAL_CODEWORDS = [
+    0,26,44,70,100,134,172,196,242,292,346,404,466,532,581,655,733,815,901,991,
+    1085,1156,1258,1364,1474,1588,1706,1828,1921,2051,2185,2323,2465,2611,2761,2876,3034,3196,3362,3532,3706
+  ];
+
+  // EC codewords per block, by level, for versions 1-40 (ISO/IEC 18004 Table 9)
+  var EC_CODEWORDS_PER_BLOCK = {
+    L: [0,7,10,15,20,26,18,20,24,30,18,20,24,26,30,22,24,28,30,28,28,28,28,30,30,26,28,30,30,30,30,30,30,30,30,30,30,30,30,30,30],
+    M: [0,10,16,26,18,24,16,18,22,22,26,30,22,22,24,24,28,28,26,26,26,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28],
+    Q: [0,13,22,18,26,18,24,18,22,20,24,28,26,24,20,30,24,28,28,26,30,28,30,30,30,30,28,30,30,30,30,30,30,30,30,30,30,30,30,30,30],
+    H: [0,17,28,22,16,22,28,26,26,24,28,24,28,22,24,24,30,28,28,26,28,30,24,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30]
+  };
+
+  // Number of error-correction blocks, by level, for versions 1-40 (Table 9)
+  var EC_BLOCKS = {
+    L: [0,1,1,1,1,1,2,2,2,2,4,4,4,4,4,6,6,6,6,7,8,8,9,9,10,12,12,12,13,14,15,16,17,18,19,19,20,21,22,24,25],
+    M: [0,1,1,1,2,2,4,4,4,5,5,5,8,9,9,10,10,11,13,14,16,17,17,18,20,21,23,25,26,28,29,31,33,35,37,38,40,43,45,47,49],
+    Q: [0,1,1,2,2,4,4,6,6,8,8,8,10,12,16,12,17,16,18,21,20,23,23,25,27,29,34,34,35,38,40,43,45,48,51,53,56,59,62,65,68],
+    H: [0,1,1,2,4,4,4,5,6,8,8,11,11,16,16,18,16,19,21,25,25,25,34,30,32,35,37,40,42,45,48,51,54,57,60,63,66,70,74,77,81]
+  };
+
+  // ---------- Character capacity for byte mode (used to pick smallest version) ----------
+  function dataCodewordsForVersion(version, level) {
+    var total = TOTAL_CODEWORDS[version];
+    var ecPerBlock = EC_CODEWORDS_PER_BLOCK[level][version];
+    var blocks = EC_BLOCKS[level][version];
+    return total - ecPerBlock * blocks;
+  }
+
+  function byteCapacity(version, level) {
+    var dataCw = dataCodewordsForVersion(version, level);
+    var charCountBits = version <= 9 ? 8 : 16;
+    var headerBits = 4 + charCountBits;
+    var bits = dataCw * 8 - headerBits;
+    return Math.max(0, Math.floor(bits / 8));
+  }
+
+  function pickVersion(byteLength, level) {
+    for (var v = 1; v <= 40; v++) {
+      if (byteCapacity(v, level) >= byteLength) return v;
+    }
+    return -1; // too big
+  }
+
+  // ---------- Bit buffer ----------
+  function BitBuffer() {
+    this.bits = [];
+  }
+  BitBuffer.prototype.put = function (val, len) {
+    for (var i = len - 1; i >= 0; i--) {
+      this.bits.push((val >>> i) & 1);
+    }
+  };
+  BitBuffer.prototype.toBytes = function () {
+    var bytes = [];
+    for (var i = 0; i < this.bits.length; i += 8) {
+      var b = 0;
+      for (var j = 0; j < 8; j++) {
+        b = (b << 1) | (this.bits[i + j] || 0);
+      }
+      bytes.push(b);
+    }
+    return bytes;
+  };
+
+  function utf8Bytes(str) {
+    var bytes = [];
+    for (var i = 0; i < str.length; i++) {
+      var code = str.codePointAt(i);
+      if (code > 0xffff) i++; // surrogate pair consumed
+      if (code < 0x80) {
+        bytes.push(code);
+      } else if (code < 0x800) {
+        bytes.push(0xc0 | (code >> 6), 0x80 | (code & 0x3f));
+      } else if (code < 0x10000) {
+        bytes.push(0xe0 | (code >> 12), 0x80 | ((code >> 6) & 0x3f), 0x80 | (code & 0x3f));
+      } else {
+        bytes.push(
+          0xf0 | (code >> 18),
+          0x80 | ((code >> 12) & 0x3f),
+          0x80 | ((code >> 6) & 0x3f),
+          0x80 | (code & 0x3f)
+        );
+      }
+    }
+    return bytes;
+  }
+
+  function encodeDataCodewords(text, version, level) {
+    var dataBytes = utf8Bytes(text);
+    var buf = new BitBuffer();
+    buf.put(0b0100, 4); // byte mode indicator
+    var charCountBits = version <= 9 ? 8 : 16;
+    buf.put(dataBytes.length, charCountBits);
+    for (var i = 0; i < dataBytes.length; i++) buf.put(dataBytes[i], 8);
+
+    var capacityBits = dataCodewordsForVersion(version, level) * 8;
+    // terminator
+    var termLen = Math.min(4, capacityBits - buf.bits.length);
+    if (termLen > 0) buf.put(0, termLen);
+    // pad to byte boundary
+    while (buf.bits.length % 8 !== 0) buf.bits.push(0);
+    // pad bytes
+    var padBytes = [0xec, 0x11];
+    var pi = 0;
+    while (buf.bits.length < capacityBits) {
+      buf.put(padBytes[pi % 2], 8);
+      pi++;
+    }
+    return buf.toBytes();
+  }
+
+  function buildBlocks(dataCodewords, version, level) {
+    var total = TOTAL_CODEWORDS[version];
+    var ecPerBlock = EC_CODEWORDS_PER_BLOCK[level][version];
+    var numBlocks = EC_BLOCKS[level][version];
+    var totalDataCw = dataCodewords.length;
+
+    var shortBlockLen = Math.floor(totalDataCw / numBlocks);
+    var numLongBlocks = totalDataCw - shortBlockLen * numBlocks; // blocks with one extra data codeword
+    var numShortBlocks = numBlocks - numLongBlocks;
+
+    var blocks = [];
+    var offset = 0;
+    for (var i = 0; i < numShortBlocks; i++) {
+      var d = dataCodewords.slice(offset, offset + shortBlockLen);
+      offset += shortBlockLen;
+      blocks.push(d);
+    }
+    for (var i = 0; i < numLongBlocks; i++) {
+      var d = dataCodewords.slice(offset, offset + shortBlockLen + 1);
+      offset += shortBlockLen + 1;
+      blocks.push(d);
+    }
+
+    var ecBlocks = blocks.map(function (b) {
+      return rsComputeRemainder(b, ecPerBlock);
+    });
+
+    // interleave data
+    var maxDataLen = shortBlockLen + 1;
+    var finalData = [];
+    for (var i = 0; i < maxDataLen; i++) {
+      for (var b = 0; b < blocks.length; b++) {
+        if (i < blocks[b].length) finalData.push(blocks[b][i]);
+      }
+    }
+    // interleave EC
+    var finalEc = [];
+    for (var i = 0; i < ecPerBlock; i++) {
+      for (var b = 0; b < ecBlocks.length; b++) {
+        finalEc.push(ecBlocks[b][i]);
+      }
+    }
+    return finalData.concat(finalEc);
+  }
+
+  // ---------- Matrix construction ----------
+  function sizeForVersion(version) {
+    return 17 + version * 4;
+  }
+
+  var ALIGNMENT_POSITIONS = [
+    null,
+    [], [6,18], [6,22], [6,26], [6,30], [6,34],
+    [6,22,38], [6,24,42], [6,26,46], [6,28,50],
+    [6,30,54], [6,32,58], [6,34,62], [6,26,46,66], [6,26,48,70],
+    [6,26,50,74], [6,30,54,78], [6,30,56,82], [6,30,58,86], [6,34,62,90],
+    [6,28,50,72,94], [6,26,50,74,98], [6,30,54,78,102], [6,28,54,80,106], [6,32,58,84,110],
+    [6,30,58,86,114], [6,34,62,90,118], [6,26,50,74,98,122], [6,30,54,78,102,126], [6,26,52,78,104,130],
+    [6,30,56,82,108,134], [6,34,60,86,112,138], [6,30,58,86,114,142], [6,34,62,90,118,146], [6,30,54,78,102,126,150],
+    [6,24,50,76,102,128,154], [6,28,54,80,106,132,158], [6,32,58,84,110,136,162], [6,26,54,82,110,138,166], [6,30,58,86,114,142,170]
+  ];
+
+  function makeMatrix(version) {
+    var size = sizeForVersion(version);
+    var m = [];
+    var reserved = [];
+    for (var r = 0; r < size; r++) {
+      m.push(new Array(size).fill(0));
+      reserved.push(new Array(size).fill(false));
+    }
+    return { size: size, data: m, reserved: reserved };
+  }
+
+  function setModule(mtx, r, c, val, isReserved) {
+    if (r < 0 || r >= mtx.size || c < 0 || c >= mtx.size) return;
+    mtx.data[r][c] = val ? 1 : 0;
+    if (isReserved) mtx.reserved[r][c] = true;
+  }
+
+  function placeFinder(mtx, row, col) {
+    for (var r = -1; r <= 7; r++) {
+      for (var c = -1; c <= 7; c++) {
+        var rr = row + r, cc = col + c;
+        if (rr < 0 || rr >= mtx.size || cc < 0 || cc >= mtx.size) continue;
+        var isDark =
+          (r >= 0 && r <= 6 && (c === 0 || c === 6)) ||
+          (c >= 0 && c <= 6 && (r === 0 || r === 6)) ||
+          (r >= 2 && r <= 4 && c >= 2 && c <= 4);
+        setModule(mtx, rr, cc, isDark, true);
+      }
+    }
+  }
+
+  function placeAlignment(mtx, row, col) {
+    for (var r = -2; r <= 2; r++) {
+      for (var c = -2; c <= 2; c++) {
+        var isDark = Math.max(Math.abs(r), Math.abs(c)) !== 1;
+        setModule(mtx, row + r, col + c, isDark, true);
+      }
+    }
+  }
+
+  function placeFunctionPatterns(mtx, version) {
+    var size = mtx.size;
+    placeFinder(mtx, 0, 0);
+    placeFinder(mtx, 0, size - 7);
+    placeFinder(mtx, size - 7, 0);
+
+    // timing patterns
+    for (var i = 8; i < size - 8; i++) {
+      var v = i % 2 === 0 ? 1 : 0;
+      setModule(mtx, 6, i, v, true);
+      setModule(mtx, i, 6, v, true);
+    }
+
+    // dark module
+    setModule(mtx, size - 8, 8, 1, true);
+
+    // alignment patterns
+    var positions = ALIGNMENT_POSITIONS[version] || [];
+    for (var pi = 0; pi < positions.length; pi++) {
+      for (var pj = 0; pj < positions.length; pj++) {
+        var row = positions[pi], col = positions[pj];
+        // skip if overlapping a finder pattern corner
+        if (
+          (row < 9 && col < 9) ||
+          (row < 9 && col > size - 9) ||
+          (row > size - 9 && col < 9)
+        ) continue;
+        placeAlignment(mtx, row, col);
+      }
+    }
+
+    // reserve format info areas
+    for (var i = 0; i <= 8; i++) {
+      mtx.reserved[8][i] = true;
+      mtx.reserved[i][8] = true;
+    }
+    for (var i = 0; i < 8; i++) {
+      mtx.reserved[8][size - 1 - i] = true;
+      mtx.reserved[size - 1 - i][8] = true;
+    }
+
+    // reserve version info areas (version >= 7)
+    if (version >= 7) {
+      for (var r = 0; r < 6; r++) {
+        for (var c = 0; c < 3; c++) {
+          mtx.reserved[r][size - 11 + c] = true;
+          mtx.reserved[size - 11 + c][r] = true;
+        }
+      }
+    }
+  }
+
+  // Format info: BCH(15,5) with generator 0x537, mask 0x5412
+  // Standard mapping (ISO 18004): ECC-level indicator bits L=01(1), M=00(0), Q=11(3), H=10(2)
+  function reverseBits(v, len) {
+    var r = 0;
+    for (var i = 0; i < len; i++) r = (r << 1) | ((v >> i) & 1);
+    return r;
+  }
+
+  function formatInfoBits(level, maskPattern) {
+    var levelBits = { L: 1, M: 0, Q: 3, H: 2 }[level];
+    var data = (levelBits << 3) | maskPattern;
+    var rem = data;
+    for (var i = 0; i < 10; i++) {
+      rem = (rem << 1) ^ ((rem >>> 9) * 0x537);
+    }
+    var bits = ((data << 10) | rem) ^ 0x5412;
+    return reverseBits(bits & 0x7fff, 15);
+  }
+
+  function placeFormatInfo(mtx, level, maskPattern) {
+    var size = mtx.size;
+    var bits = formatInfoBits(level, maskPattern);
+    var getBit = function (i) { return (bits >> i) & 1; };
+    var i;
+    for (i = 0; i <= 5; i++) setModule(mtx, 8, i, getBit(i), true);
+    setModule(mtx, 8, 7, getBit(6), true);
+    setModule(mtx, 8, 8, getBit(7), true);
+    setModule(mtx, 7, 8, getBit(8), true);
+    for (i = 9; i < 15; i++) setModule(mtx, 14 - i, 8, getBit(i), true);
+
+    for (i = 0; i <= 7; i++) setModule(mtx, size - 1 - i, 8, getBit(i), true);
+    for (i = 8; i < 15; i++) setModule(mtx, 8, size - 15 + i, getBit(i), true);
+    setModule(mtx, size - 8, 8, 1, true);
+  }
+
+  function versionInfoBits(version) {
+    var rem = version;
+    for (var i = 0; i < 12; i++) {
+      rem = (rem << 1) ^ ((rem >>> 11) * 0x1f25);
+    }
+    return (version << 12) | rem;
+  }
+
+  function placeVersionInfo(mtx, version) {
+    if (version < 7) return;
+    var size = mtx.size;
+    var bits = versionInfoBits(version);
+    for (var i = 0; i < 18; i++) {
+      var bit = (bits >> i) & 1;
+      var a = size - 11 + (i % 3);
+      var b = Math.floor(i / 3);
+      setModule(mtx, a, b, bit, true);
+      setModule(mtx, b, a, bit, true);
+    }
+  }
+
+  function placeData(mtx, dataBytes) {
+    var bits = [];
+    for (var i = 0; i < dataBytes.length; i++) {
+      for (var b = 7; b >= 0; b--) bits.push((dataBytes[i] >> b) & 1);
+    }
+    var size = mtx.size;
+    var bitIndex = 0;
+    var upward = true;
+    var col = size - 1;
+    while (col > 0) {
+      if (col === 6) col--; // skip timing column
+      for (var i = 0; i < size; i++) {
+        var row = upward ? size - 1 - i : i;
+        for (var c = 0; c < 2; c++) {
+          var cc = col - c;
+          if (mtx.reserved[row][cc]) continue;
+          var bit = bitIndex < bits.length ? bits[bitIndex] : 0;
+          bitIndex++;
+          mtx.data[row][cc] = bit;
+        }
+      }
+      upward = !upward;
+      col -= 2;
+    }
+  }
+
+  function applyMask(mtx, maskPattern, isFunction) {
+    var size = mtx.size;
+    var maskFn;
+    switch (maskPattern) {
+      case 0: maskFn = function (r, c) { return (r + c) % 2 === 0; }; break;
+      case 1: maskFn = function (r, c) { return r % 2 === 0; }; break;
+      case 2: maskFn = function (r, c) { return c % 3 === 0; }; break;
+      case 3: maskFn = function (r, c) { return (r + c) % 3 === 0; }; break;
+      case 4: maskFn = function (r, c) { return (Math.floor(r / 2) + Math.floor(c / 3)) % 2 === 0; }; break;
+      case 5: maskFn = function (r, c) { return ((r * c) % 2) + ((r * c) % 3) === 0; }; break;
+      case 6: maskFn = function (r, c) { return (((r * c) % 2) + ((r * c) % 3)) % 2 === 0; }; break;
+      case 7: maskFn = function (r, c) { return (((r + c) % 2) + ((r * c) % 3)) % 2 === 0; }; break;
+    }
+    var out = [];
+    for (var r = 0; r < size; r++) {
+      out.push(mtx.data[r].slice());
+      for (var c = 0; c < size; c++) {
+        if (!mtx.reserved[r][c] && maskFn(r, c)) {
+          out[r][c] ^= 1;
+        }
+      }
+    }
+    return out;
+  }
+
+  function penaltyScore(matrix, size) {
+    var score = 0;
+    // rule 1: consecutive same-color modules in row/col
+    function runPenalty(getVal) {
+      var p = 0;
+      for (var i = 0; i < size; i++) {
+        var runColor = -1, runLen = 0;
+        for (var j = 0; j < size; j++) {
+          var v = getVal(i, j);
+          if (v === runColor) {
+            runLen++;
+          } else {
+            if (runLen >= 5) p += 3 + (runLen - 5);
+            runColor = v; runLen = 1;
+          }
+        }
+        if (runLen >= 5) p += 3 + (runLen - 5);
+      }
+      return p;
+    }
+    score += runPenalty(function (r, c) { return matrix[r][c]; });
+    score += runPenalty(function (r, c) { return matrix[c][r]; });
+
+    // rule 2: 2x2 blocks same color
+    for (var r = 0; r < size - 1; r++) {
+      for (var c = 0; c < size - 1; c++) {
+        var v = matrix[r][c];
+        if (v === matrix[r][c + 1] && v === matrix[r + 1][c] && v === matrix[r + 1][c + 1]) {
+          score += 3;
+        }
+      }
+    }
+
+    // rule 3: finder-like patterns 1:1:3:1:1 with 4 white either side
+    var pattern1 = [1,0,1,1,1,0,1,0,0,0,0];
+    var pattern2 = [0,0,0,0,1,0,1,1,1,0,1];
+    function matchAt(arr, start, pattern) {
+      for (var k = 0; k < pattern.length; k++) {
+        if (arr[start + k] !== pattern[k]) return false;
+      }
+      return true;
+    }
+    for (var r = 0; r < size; r++) {
+      var row = matrix[r];
+      for (var c = 0; c <= size - 11; c++) {
+        if (matchAt(row, c, pattern1) || matchAt(row, c, pattern2)) score += 40;
+      }
+    }
+    for (var c = 0; c < size; c++) {
+      var col = [];
+      for (var r = 0; r < size; r++) col.push(matrix[r][c]);
+      for (var r2 = 0; r2 <= size - 11; r2++) {
+        if (matchAt(col, r2, pattern1) || matchAt(col, r2, pattern2)) score += 40;
+      }
+    }
+
+    // rule 4: dark module proportion
+    var dark = 0;
+    for (var r = 0; r < size; r++) for (var c = 0; c < size; c++) dark += matrix[r][c];
+    var percent = (dark * 100) / (size * size);
+    var prevMultiple = Math.floor(percent / 5) * 5;
+    var nextMultiple = prevMultiple + 5;
+    score += Math.min(Math.abs(prevMultiple - 50) / 5, Math.abs(nextMultiple - 50) / 5) * 10;
+
+    return score;
+  }
+
+  function generateMatrix(text, level) {
+    level = level || 'M';
+    var byteLen = utf8Bytes(text).length;
+    var version = pickVersion(byteLen, level);
+    if (version === -1) throw new Error('Los datos son demasiado largos para un código QR.');
+
+    var dataCodewords = encodeDataCodewords(text, version, level);
+    var allCodewords = buildBlocks(dataCodewords, version, level);
+
+    var mtx = makeMatrix(version);
+    placeFunctionPatterns(mtx, version);
+    placeData(mtx, allCodewords);
+
+    var bestMask = 0, bestScore = Infinity, bestMatrix = null;
+    for (var mp = 0; mp < 8; mp++) {
+      var masked = applyMask(mtx, mp);
+      var s = penaltyScore(masked, mtx.size);
+      if (s < bestScore) { bestScore = s; bestMask = mp; bestMatrix = masked; }
+    }
+
+    placeFormatInfo(mtx, level, bestMask);
+    placeVersionInfo(mtx, version);
+    // re-apply format/version info onto bestMatrix (they were set on mtx.data via reserved overlay)
+    for (var r = 0; r < mtx.size; r++) {
+      for (var c = 0; c < mtx.size; c++) {
+        if (mtx.reserved[r][c]) bestMatrix[r][c] = mtx.data[r][c];
+      }
+    }
+
+    return { size: mtx.size, modules: bestMatrix, functionMask: mtx.reserved, version: version, maskPattern: bestMask, level: level };
+  }
+
+  var QRCore = { generateMatrix: generateMatrix, pickVersion: pickVersion, byteCapacity: byteCapacity };
+
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = QRCore;
+  } else {
+    global.QRCore = QRCore;
+  }
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+// Renderizado de QR: canvas y SVG a partir de la misma lista de operaciones.
+(function (global) {
+  'use strict';
+
+  var QUIET = 4;          // zona de silencio (módulos), mínimo del estándar
+  var MIN_SCALE = 12;     // px por módulo mínimo para garantizar lectura
+
+  var SHAPE = {
+    square:  { dotRadius: 0,    rectRadius: 0,    eyeOuter: 0,   eyeMid: 0,   eyeInner: 0 },
+    rounded: { dotRadius: 0,    rectRadius: 0.25, eyeOuter: 1.8, eyeMid: 1.2, eyeInner: 0.9 },
+    dots:    { dotRadius: 0.62, rectRadius: 0,    eyeOuter: 2.4, eyeMid: 1.7, eyeInner: 1.5 }
+  };
+
+  function isEye(r, c, size) {
+    return (r < 7 && c < 7) || (r < 7 && c >= size - 7) || (r >= size - 7 && c < 7);
+  }
+
+  // Devuelve operaciones en unidades de módulo (ya con zona de silencio aplicada)
+  function buildOps(matrix, shape, fg, bg) {
+    var s = SHAPE[shape] || SHAPE.square;
+    var size = matrix.size, m = matrix.modules, fn = matrix.functionMask, ops = [];
+    var r, c;
+    for (r = 0; r < size; r++) {
+      for (c = 0; c < size; c++) {
+        if (!m[r][c] || isEye(r, c, size)) continue;
+        var x = c + QUIET, y = r + QUIET;
+        // Los módulos de función (temporización, alineación, formato, versión,
+        // módulo oscuro) se mantienen sólidos: un lector calibra su rejilla con
+        // ellos, y "punteados" o redondeados pueden desviar esa calibración.
+        var isFunctionModule = fn && fn[r] && fn[r][c];
+        if (!isFunctionModule && s.dotRadius) {
+          ops.push({ t: 'circle', cx: x + 0.5, cy: y + 0.5, r: s.dotRadius, c: fg });
+        } else if (!isFunctionModule && s.rectRadius) {
+          ops.push({ t: 'rect', x: x, y: y, w: 1, h: 1, r: s.rectRadius, c: fg });
+        } else {
+          ops.push({ t: 'rect', x: x, y: y, w: 1, h: 1, r: 0, c: fg });
+        }
+      }
+    }
+    var eyes = [[0, 0], [0, size - 7], [size - 7, 0]];
+    eyes.forEach(function (e) {
+      var ex = e[1] + QUIET, ey = e[0] + QUIET;
+      ops.push({ t: 'rect', x: ex, y: ey, w: 7, h: 7, r: s.eyeOuter, c: fg });
+      ops.push({ t: 'rect', x: ex + 1, y: ey + 1, w: 5, h: 5, r: s.eyeMid, c: bg });
+      ops.push({ t: 'rect', x: ex + 2, y: ey + 2, w: 3, h: 3, r: s.eyeInner, c: fg });
+    });
+    return ops;
+  }
+
+  function layout(matrix, opts) {
+    var total = matrix.size + QUIET * 2;
+    var scale = Math.max(MIN_SCALE, Math.round((opts.sizePx || 1000) / total));
+    var W = total * scale;
+    var band = opts.frame ? Math.round(W * 0.15) : 0;
+    return { total: total, scale: scale, W: W, H: W + band, band: band };
+  }
+
+  // Caja del logo y su halo (en px del lienzo)
+  function logoBoxes(L, opts, iw, ih) {
+    var box = L.W * opts.logoScale;
+    var ratio = iw / ih;
+    var w = ratio >= 1 ? box : box * ratio;
+    var h = ratio >= 1 ? box / ratio : box;
+    var cx = L.W / 2, cy = L.W / 2;
+    var pad = box * 0.09;
+    return {
+      img: { x: cx - w / 2, y: cy - h / 2, w: w, h: h },
+      halo: { x: cx - w / 2 - pad, y: cy - h / 2 - pad, w: w + pad * 2, h: h + pad * 2, r: box * 0.14 }
+    };
+  }
+
+  function rrect(ctx, x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function fitFont(ctx, text, maxW, startPx) {
+    var px = startPx;
+    ctx.font = '700 ' + px + 'px "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+    while (ctx.measureText(text).width > maxW && px > 8) {
+      px -= 1;
+      ctx.font = '700 ' + px + 'px "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+    }
+    return px;
+  }
+
+  function drawCanvas(canvas, matrix, opts, logoImg) {
+    var L = layout(matrix, opts);
+    canvas.width = L.W;
+    canvas.height = L.H;
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = opts.bg;
+    ctx.fillRect(0, 0, L.W, L.H);
+
+    buildOps(matrix, opts.shape, opts.fg, opts.bg).forEach(function (o) {
+      ctx.fillStyle = o.c;
+      if (o.t === 'circle') {
+        ctx.beginPath();
+        ctx.arc(o.cx * L.scale, o.cy * L.scale, o.r * L.scale, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (o.r) {
+        rrect(ctx, o.x * L.scale, o.y * L.scale, o.w * L.scale, o.h * L.scale, o.r * L.scale);
+        ctx.fill();
+      } else {
+        ctx.fillRect(o.x * L.scale, o.y * L.scale, o.w * L.scale, o.h * L.scale);
+      }
+    });
+
+    if (logoImg && opts.logoScale) {
+      var b = logoBoxes(L, opts, logoImg.width, logoImg.height);
+      if (opts.halo) {
+        ctx.fillStyle = opts.bg;
+        rrect(ctx, b.halo.x, b.halo.y, b.halo.w, b.halo.h, b.halo.r);
+        ctx.fill();
+      }
+      ctx.drawImage(logoImg, b.img.x, b.img.y, b.img.w, b.img.h);
+    }
+
+    if (L.band) {
+      var pad = L.W * 0.05;
+      var bh = L.band - pad * 0.6;
+      var by = L.W - QUIET * L.scale * 0.35;
+      // banda con esquinas redondeadas
+      var bx = pad, bw = L.W - pad * 2;
+      by = L.W + (L.band - bh) / 2 - QUIET * L.scale * 0.25;
+      ctx.fillStyle = opts.fg;
+      rrect(ctx, bx, by, bw, bh, bh * 0.3);
+      ctx.fill();
+      var text = opts.frameText || 'Escanéame';
+      var px = fitFont(ctx, text, bw * 0.86, Math.round(bh * 0.5));
+      ctx.fillStyle = opts.bg;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, L.W / 2, by + bh / 2 + px * 0.04);
+    }
+    return L;
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function toSVG(matrix, opts, logo) {
+    var L = layout(matrix, opts);
+    var u = L.scale;
+    var out = [];
+    out.push('<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="' + L.W + '" height="' + L.H + '" viewBox="0 0 ' + L.W + ' ' + L.H + '">');
+    out.push('<rect width="' + L.W + '" height="' + L.H + '" fill="' + opts.bg + '"/>');
+    function n(v) { return Math.round(v * 100) / 100; }
+    buildOps(matrix, opts.shape, opts.fg, opts.bg).forEach(function (o) {
+      if (o.t === 'circle') {
+        out.push('<circle cx="' + n(o.cx * u) + '" cy="' + n(o.cy * u) + '" r="' + n(o.r * u) + '" fill="' + o.c + '"/>');
+      } else {
+        out.push('<rect x="' + n(o.x * u) + '" y="' + n(o.y * u) + '" width="' + n(o.w * u) + '" height="' + n(o.h * u) + '"' +
+          (o.r ? ' rx="' + n(o.r * u) + '"' : '') + ' fill="' + o.c + '"/>');
+      }
+    });
+    if (logo && opts.logoScale) {
+      var b = logoBoxes(L, opts, logo.width, logo.height);
+      if (opts.halo) {
+        out.push('<rect x="' + n(b.halo.x) + '" y="' + n(b.halo.y) + '" width="' + n(b.halo.w) + '" height="' + n(b.halo.h) + '" rx="' + n(b.halo.r) + '" fill="' + opts.bg + '"/>');
+      }
+      out.push('<image x="' + n(b.img.x) + '" y="' + n(b.img.y) + '" width="' + n(b.img.w) + '" height="' + n(b.img.h) + '" preserveAspectRatio="xMidYMid meet" href="' + logo.dataUrl + '" xlink:href="' + logo.dataUrl + '"/>');
+    }
+    if (L.band) {
+      var pad = L.W * 0.05, bh = L.band - pad * 0.6, bw = L.W - pad * 2;
+      var by = L.W + (L.band - bh) / 2 - QUIET * L.scale * 0.25;
+      var text = opts.frameText || 'Escanéame';
+      var fs = Math.round(bh * 0.5);
+      while (text.length * fs * 0.62 > bw * 0.86 && fs > 8) fs -= 1;
+      out.push('<rect x="' + n(pad) + '" y="' + n(by) + '" width="' + n(bw) + '" height="' + n(bh) + '" rx="' + n(bh * 0.3) + '" fill="' + opts.fg + '"/>');
+      out.push('<text x="' + n(L.W / 2) + '" y="' + n(by + bh / 2) + '" fill="' + opts.bg + '" font-family="Segoe UI, -apple-system, Roboto, Helvetica, Arial, sans-serif" font-weight="700" font-size="' + fs + '" text-anchor="middle" dominant-baseline="central">' + esc(text) + '</text>');
+    }
+    out.push('</svg>');
+    return out.join('\n');
+  }
+
+  var QRRender = { drawCanvas: drawCanvas, toSVG: toSVG, layout: layout, QUIET: QUIET };
+  if (typeof module !== 'undefined' && module.exports) module.exports = QRRender;
+  else global.QRRender = QRRender;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var canvas = $('qr');
+
+  var PLATFORMS = {
+    instagram: { host: 'instagram.com/',  build: function (h) { return 'https://instagram.com/' + h; } },
+    facebook:  { host: 'facebook.com/',   build: function (h) { return 'https://facebook.com/' + h; } },
+    tiktok:    { host: 'tiktok.com/@',    build: function (h) { return 'https://www.tiktok.com/@' + h; } },
+    x:         { host: 'x.com/',          build: function (h) { return 'https://x.com/' + h; } },
+    youtube:   { host: 'youtube.com/@',   build: function (h) { return 'https://youtube.com/@' + h; } },
+    linkedin:  { host: 'linkedin.com/in/',build: function (h) { return 'https://linkedin.com/in/' + h; } },
+    telegram:  { host: 't.me/',           build: function (h) { return 'https://t.me/' + h; } },
+    snapchat:  { host: 'snapchat.com/add/',build: function (h) { return 'https://snapchat.com/add/' + h; } },
+    twitch:    { host: 'twitch.tv/',      build: function (h) { return 'https://twitch.tv/' + h; } },
+    github:    { host: 'github.com/',     build: function (h) { return 'https://github.com/' + h; } }
+  };
+
+  var PRESETS = [
+    { name: 'Tinta', fg: '#1B1D24', bg: '#FFFFFF' },
+    { name: 'Cian profundo', fg: '#0B7285', bg: '#FFFFFF' },
+    { name: 'Magenta', fg: '#B0134F', bg: '#FFFFFF' },
+    { name: 'Azul marino', fg: '#1E3A8A', bg: '#EEF2FF' },
+    { name: 'Bosque', fg: '#14532D', bg: '#F1FAEE' },
+    { name: 'Ciruela', fg: '#4A1D6B', bg: '#FFF4D6' }
+  ];
+
+  var state = { type: 'url', logo: null };
+  var SAMPLE = 'https://ejemplo.com';
+  var lastRender = null; // { matrix, opts }
+
+  /* ---------- Contenido según pestaña ---------- */
+  function payload() {
+    var v;
+    switch (state.type) {
+      case 'url':
+        v = $('in-url').value.trim();
+        if (!v) return null;
+        if (!/^[a-z][a-z0-9+.-]*:/i.test(v)) v = 'https://' + v;
+        return v;
+      case 'phone':
+        var digits = $('in-phone').value.replace(/[^\d+]/g, '');
+        var plus = digits.charAt(0) === '+';
+        digits = digits.replace(/\+/g, '');
+        if (digits.length < 6 || digits.length > 15) return null;
+        if ($('in-phone-action').value === 'wa') {
+          var msg = $('in-wa-msg').value.trim();
+          return 'https://wa.me/' + digits + (msg ? '?text=' + encodeURIComponent(msg) : '');
+        }
+        return 'tel:' + (plus ? '+' : '') + digits;
+      case 'social':
+        v = $('in-handle').value.trim();
+        if (!v) return null;
+        if (/^https?:\/\//i.test(v)) return v;
+        v = v.replace(/^@/, '').replace(/\s+/g, '');
+        return v ? PLATFORMS[$('in-platform').value].build(v) : null;
+      case 'text':
+        v = $('in-text').value;
+        return v.trim() ? v : null;
+    }
+    return null;
+  }
+
+  /* ---------- Contraste ---------- */
+  function lum(hex) {
+    var n = parseInt(hex.slice(1), 16);
+    var c = [n >> 16 & 255, n >> 8 & 255, n & 255].map(function (v) {
+      v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  }
+  function contrast(a, b) {
+    var l1 = lum(a), l2 = lum(b);
+    return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+  }
+
+  /* ---------- Opciones actuales ---------- */
+  function safeLogoCap(moduleSize) {
+    if (moduleSize <= 25) return 0.20;
+    if (moduleSize <= 29) return 0.24;
+    return 0.28;
+  }
+  function options(matrixSize) {
+    var shape = document.querySelector('input[name="shape"]:checked').value;
+    var rawLogo = state.logo ? parseInt($('in-logo-size').value, 10) / 100 : 0;
+    var cap = matrixSize ? safeLogoCap(matrixSize) : 0.28;
+    return {
+      shape: shape,
+      fg: $('in-fg').value,
+      bg: $('in-bg').value,
+      sizePx: parseInt($('in-size').value, 10),
+      logoScale: Math.min(rawLogo, cap),
+      logoCapped: rawLogo > cap,
+      halo: $('in-halo').checked,
+      frame: $('in-frame').checked,
+      frameText: $('in-frame-text').value.trim() || 'Escanéame'
+    };
+  }
+
+  /* ---------- Render ---------- */
+  var timer = null;
+  function schedule() { clearTimeout(timer); timer = setTimeout(render, 90); }
+
+  function render() {
+    var text = payload();
+    var isSample = !text;
+    var level = state.logo ? 'H' : 'M';
+    var status = $('status'), meta = $('meta');
+    status.className = 'status';
+    status.textContent = '';
+    meta.textContent = '';
+    lastRender = null;
+    $('dl-png').disabled = true;
+    $('dl-svg').disabled = true;
+    $('sample-note').hidden = !isSample;
+    canvas.classList.toggle('is-sample', isSample);
+
+    var matrix;
+    try {
+      matrix = QRCore.generateMatrix(text || SAMPLE, level);
+    } catch (e) {
+      canvas.classList.add('is-sample');
+      status.className = 'status err';
+      status.textContent = state.logo
+        ? 'El contenido es demasiado largo para llevar logo. Acórtalo o quita el logo.'
+        : 'El contenido es demasiado largo para un código QR. Acórtalo e inténtalo de nuevo.';
+      return;
+    }
+
+    var opts = options(matrix.size);
+    var L = QRRender.drawCanvas(canvas, matrix, opts, state.logo ? state.logo.img : null);
+
+    if (isSample) {
+      status.textContent = 'Vista de ejemplo. Completa el campo para generar tu código.';
+      return;
+    }
+
+    lastRender = { matrix: matrix, opts: opts, text: text };
+    $('dl-png').disabled = false;
+    $('dl-svg').disabled = false;
+
+    var warns = [];
+    var ratio = contrast(opts.fg, opts.bg);
+    if (ratio < 3) warns.push('Poco contraste entre el código y el fondo: podría no escanear bien.');
+    else if (lum(opts.fg) > lum(opts.bg)) warns.push('El código es más claro que el fondo: algunos lectores no lo reconocen.');
+    if (opts.logoCapped) warns.push('Con este contenido, el logo se redujo un poco para que el código se siga leyendo.');
+    if (warns.length) { status.className = 'status warn'; status.textContent = warns[0]; }
+
+    meta.textContent = matrix.size + ' × ' + matrix.size + ' módulos, corrección de errores ' +
+      (level === 'H' ? 'alta' : 'media') + '. Se descargará a ' + L.W + ' × ' + L.H + ' px.';
+  }
+
+  /* ---------- Descargas ---------- */
+  function fileBase() {
+    return 'sello-qr-' + ({ url: 'enlace', phone: 'telefono', social: 'red-social', text: 'texto' })[state.type];
+  }
+  function save(blob, name) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  }
+  $('dl-png').addEventListener('click', function () {
+    if (!lastRender) return;
+    canvas.toBlob(function (b) { if (b) save(b, fileBase() + '.png'); }, 'image/png');
+  });
+  $('dl-svg').addEventListener('click', function () {
+    if (!lastRender) return;
+    var logo = state.logo ? { dataUrl: state.logo.dataUrl, width: state.logo.img.width, height: state.logo.img.height } : null;
+    var svg = QRRender.toSVG(lastRender.matrix, lastRender.opts, logo);
+    save(new Blob([svg], { type: 'image/svg+xml' }), fileBase() + '.svg');
+  });
+
+  /* ---------- Pestañas ---------- */
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  function selectTab(tab, focus) {
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+      $(t.getAttribute('aria-controls')).hidden = !on;
+    });
+    state.type = tab.dataset.type;
+    if (focus) tab.focus();
+    render();
+  }
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { selectTab(t); });
+    t.addEventListener('keydown', function (e) {
+      var n = null;
+      if (e.key === 'ArrowRight') n = tabs[(i + 1) % tabs.length];
+      if (e.key === 'ArrowLeft') n = tabs[(i - 1 + tabs.length) % tabs.length];
+      if (e.key === 'Home') n = tabs[0];
+      if (e.key === 'End') n = tabs[tabs.length - 1];
+      if (n) { e.preventDefault(); selectTab(n, true); }
+    });
+  });
+
+  /* ---------- Campos ---------- */
+  ['in-url', 'in-phone', 'in-wa-msg', 'in-handle', 'in-text', 'in-frame-text'].forEach(function (id) {
+    $(id).addEventListener('input', schedule);
+  });
+  ['in-phone-action', 'in-platform', 'in-size', 'in-halo', 'in-frame'].forEach(function (id) {
+    $(id).addEventListener('change', function () {
+      if (id === 'in-phone-action') $('wa-msg-wrap').hidden = this.value !== 'wa';
+      if (id === 'in-platform') $('handle-prefix').textContent = PLATFORMS[this.value].host;
+      if (id === 'in-frame') $('frame-wrap').hidden = !this.checked;
+      render();
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="shape"]'), function (r) {
+    r.addEventListener('change', render);
+  });
+
+  /* ---------- Colores y combinaciones ---------- */
+  function syncColorLabels() {
+    $('c-fg').textContent = $('in-fg').value.toUpperCase();
+    $('c-bg').textContent = $('in-bg').value.toUpperCase();
+    Array.prototype.forEach.call($('presets').children, function (b, i) {
+      var p = PRESETS[i];
+      b.setAttribute('aria-pressed', String(p.fg.toLowerCase() === $('in-fg').value.toLowerCase() && p.bg.toLowerCase() === $('in-bg').value.toLowerCase()));
+    });
+  }
+  PRESETS.forEach(function (p) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'preset';
+    b.title = p.name;
+    b.setAttribute('aria-label', p.name);
+    b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = '<i style="background:linear-gradient(135deg,' + p.bg + ' 50%,' + p.fg + ' 50%)"></i>';
+    b.addEventListener('click', function () {
+      $('in-fg').value = p.fg; $('in-bg').value = p.bg;
+      syncColorLabels(); render();
+    });
+    $('presets').appendChild(b);
+  });
+  ['in-fg', 'in-bg'].forEach(function (id) {
+    $(id).addEventListener('input', function () { syncColorLabels(); schedule(); });
+  });
+
+  /* ---------- Logo ---------- */
+  function setLogo(logo) {
+    state.logo = logo;
+    $('logo-opts').hidden = !logo;
+    $('logo-remove').hidden = !logo;
+    $('logo-thumb').hidden = !logo;
+    $('logo-hint').hidden = !!logo;
+    $('logo-btn').textContent = logo ? 'Cambiar imagen' : 'Subir imagen';
+    $('logo-thumb').style.backgroundImage = logo ? 'url("' + logo.dataUrl + '")' : '';
+    render();
+  }
+  $('in-logo').addEventListener('change', function () {
+    var f = this.files && this.files[0];
+    if (!f) return;
+    if (!/^image\//.test(f.type)) { $('logo-hint').textContent = 'Ese archivo no es una imagen.'; $('logo-hint').hidden = false; return; }
+    var fr = new FileReader();
+    fr.onload = function () {
+      var src = new Image();
+      src.onload = function () {
+        var w = src.naturalWidth || src.width || 300, h = src.naturalHeight || src.height || 300;
+        var k = Math.min(1, 600 / Math.max(w, h));
+        var c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
+        c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+        var url = c.toDataURL('image/png');
+        var img = new Image();
+        img.onload = function () { setLogo({ img: img, dataUrl: url }); };
+        img.src = url;
+      };
+      src.onerror = function () { $('logo-hint').textContent = 'No pudimos leer esa imagen. Prueba con PNG o JPG.'; $('logo-hint').hidden = false; };
+      src.src = fr.result;
+    };
+    fr.readAsDataURL(f);
+  });
+  $('logo-remove').addEventListener('click', function () { $('in-logo').value = ''; setLogo(null); });
+  $('in-logo-size').addEventListener('input', function () {
+    $('o-logo-size').textContent = this.value + ' %';
+    schedule();
+  });
+
+  syncColorLabels();
+  render();
+})();
+</script>
+</body>
+</html>
